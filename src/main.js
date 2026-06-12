@@ -317,11 +317,15 @@ onUpdate("xp", (x) => {
     }
 });
 
-// ─── XP Collection ───
-onCollide("player", "xp", (p, xpItem) => {
-    destroy(xpItem);
-    game.xp += 10;
-    checkLevelUp();
+// ─── XP Collection (manual distance) ───
+onUpdate(() => {
+    for (const x of get("xp")) {
+        if (player.pos.dist(x.pos) < 22) {
+            destroy(x);
+            game.xp += 10;
+            checkLevelUp();
+        }
+    }
 });
 
 // ─── HUD ───
