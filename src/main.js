@@ -206,6 +206,7 @@ function autoShoot() {
             area(),
             z(6),
             move(bDir, 500),
+            opacity(1),
             lifespan(1.5),
             "bullet",
         ]);
