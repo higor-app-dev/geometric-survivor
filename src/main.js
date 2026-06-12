@@ -26,6 +26,8 @@ const game = {
 };
 
 // ─── Player ───
+let playerHP = 5;
+let playerMaxHP = 5;
 let invincibleTimer = 0;
 let gameOver = false;
 
@@ -37,17 +39,19 @@ const player = add([
     anchor("center"),
     z(10),
     area(),
-    health(5),
     "player",
 ]);
 
-// Invincibility blink
+// Invincibility blink + HP check
 player.onUpdate(() => {
     if (invincibleTimer > 0) {
         invincibleTimer -= dt();
         player.opacity = Math.sin(invincibleTimer * 20) > 0 ? 0.3 : 1;
     } else {
         player.opacity = 1;
+    }
+    if (playerHP <= 0) {
+        triggerGameOver();
     }
 });
 
@@ -245,13 +249,13 @@ onCollide("bullet", "enemy", (bullet, enemy) => {
 // Player takes damage on enemy collision
 onCollide("player", "enemy", (p, enemy) => {
     if (invincibleTimer > 0 || gameOver) return;
-    p.hurt(1);
+    playerHP -= 1;
     destroy(enemy);
     invincibleTimer = 1.0;
 });
 
-// Player death
-player.onDeath(() => {
+function triggerGameOver() {
+    if (gameOver) return;
     gameOver = true;
     game.paused = true;
     destroyAll("enemy");
@@ -292,7 +296,7 @@ player.onDeath(() => {
         fixed(),
         z(201),
     ]);
-});
+}
 
 // ─── XP Magnet ───
 onUpdate("xp", (x) => {
@@ -364,8 +368,8 @@ onDraw(() => {
     });
 
     // Health bar
-    const hp = player.hp?.() ?? 5;
-    const maxHp = player.maxHP?.() ?? 5;
+    const hp = playerHP;
+    const maxHp = playerMaxHP;
     const hpW = 80;
     drawText({
         text: "❤️",
