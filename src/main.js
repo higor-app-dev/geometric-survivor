@@ -231,27 +231,36 @@ function autoShoot() {
     }
 }
 
-// ─── Collisions ───
-onCollide("bullet", "enemy", (bullet, enemy) => {
-    destroy(bullet);
-    add([
-        pos(enemy.pos),
-        rect(8, 8),
-        color(80, 220, 80),
-        anchor("center"),
-        area(),
-        z(3),
-        "xp",
-    ]);
-    destroy(enemy);
+// ─── Collisions (manual distance-based) ───
+onUpdate("bullet", (b) => {
+    for (const e of get("enemy")) {
+        if (b.pos.dist(e.pos) < 20) {
+            destroy(b);
+            add([
+                pos(e.pos),
+                rect(8, 8),
+                color(80, 220, 80),
+                anchor("center"),
+                area(),
+                z(3),
+                "xp",
+            ]);
+            destroy(e);
+            return;
+        }
+    }
 });
 
-// Player takes damage on enemy collision
-onCollide("player", "enemy", (p, enemy) => {
+onUpdate(() => {
     if (invincibleTimer > 0 || gameOver) return;
-    playerHP -= 1;
-    destroy(enemy);
-    invincibleTimer = 1.0;
+    for (const e of get("enemy")) {
+        if (player.pos.dist(e.pos) < 25) {
+            playerHP -= 1;
+            destroy(e);
+            invincibleTimer = 1.0;
+            break;
+        }
+    }
 });
 
 function triggerGameOver() {
