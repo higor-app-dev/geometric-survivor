@@ -26,6 +26,9 @@ const game = {
 };
 
 // ─── Player ───
+let invincibleTimer = 0;
+let gameOver = false;
+
 const player = add([
     pos(center()),
     circle(18),
@@ -34,8 +37,19 @@ const player = add([
     anchor("center"),
     z(10),
     area(),
+    health(5),
     "player",
 ]);
+
+// Invincibility blink
+player.onUpdate(() => {
+    if (invincibleTimer > 0) {
+        invincibleTimer -= dt();
+        player.opacity = Math.sin(invincibleTimer * 20) > 0 ? 0.3 : 1;
+    } else {
+        player.opacity = 1;
+    }
+});
 
 // ─── Virtual Joystick ───
 const J_RADIUS = 70;
@@ -102,7 +116,7 @@ onKeyRelease("down", () => game.keysHeld.down = false);
 
 // ─── Player Movement ───
 onUpdate(() => {
-    if (game.paused) return;
+    if (game.paused || gameOver) return;
 
     let mx = 0, my = 0;
     if (game.keysHeld.left) mx -= 1;
@@ -128,7 +142,7 @@ onUpdate(() => {
 let spawnTimer = 0;
 
 onUpdate(() => {
-    if (game.paused) return;
+    if (game.paused || gameOver) return;
     spawnTimer += dt();
     const interval = Math.max(0.4, 1.2 - game.level * 0.05);
     if (spawnTimer >= interval) {
@@ -163,7 +177,7 @@ function spawnEnemy() {
 
 // ─── Enemy Movement ───
 onUpdate("enemy", (e) => {
-    if (game.paused) return;
+    if (game.paused || gameOver) return;
     const dir = player.pos.sub(e.pos).unit();
     const spd = game.enemySpeed + game.level * 5;
     e.pos = e.pos.add(dir.scale(spd * dt()));
@@ -226,6 +240,58 @@ onCollide("bullet", "enemy", (bullet, enemy) => {
         "xp",
     ]);
     destroy(enemy);
+});
+
+// Player takes damage on enemy collision
+onCollide("player", "enemy", (p, enemy) => {
+    if (invincibleTimer > 0 || gameOver) return;
+    p.hurt(1);
+    destroy(enemy);
+    invincibleTimer = 1.0;
+});
+
+// Player death
+player.onDeath(() => {
+    gameOver = true;
+    game.paused = true;
+    destroyAll("enemy");
+    destroyAll("bullet");
+    destroyAll("xp");
+
+    add([
+        rect(width(), height()),
+        color(0, 0, 0),
+        opacity(0.8),
+        fixed(),
+        z(200),
+    ]);
+
+    add([
+        text("GAME OVER 💀", { size: 32 }),
+        pos(width() / 2, height() / 2 - 30),
+        anchor("center"),
+        color(255, 80, 80),
+        fixed(),
+        z(201),
+    ]);
+
+    add([
+        text(`Level atingido: ${game.level}`, { size: 18 }),
+        pos(width() / 2, height() / 2 + 20),
+        anchor("center"),
+        color(200, 200, 200),
+        fixed(),
+        z(201),
+    ]);
+
+    add([
+        text("Atualize a página para jogar de novo", { size: 14 }),
+        pos(width() / 2, height() / 2 + 55),
+        anchor("center"),
+        color(150, 150, 150),
+        fixed(),
+        z(201),
+    ]);
 });
 
 // ─── XP Magnet ───
@@ -295,6 +361,34 @@ onDraw(() => {
         color: rgb(200, 120, 120),
         fixed: true,
         anchor: "right",
+    });
+
+    // Health bar
+    const hp = player.hp?.() ?? 5;
+    const maxHp = player.maxHP?.() ?? 5;
+    const hpW = 80;
+    drawText({
+        text: "❤️",
+        pos: vec2(width() - 20 - hpW - 25, by + barH + 8),
+        size: 11,
+        color: rgb(255, 100, 100),
+        fixed: true,
+    });
+    drawRect({
+        pos: vec2(width() - 20 - hpW, by),
+        width: hpW,
+        height: barH,
+        color: rgb(50, 20, 20),
+        radius: 6,
+        fixed: true,
+    });
+    drawRect({
+        pos: vec2(width() - 20 - hpW, by),
+        width: hpW * (hp / maxHp),
+        height: barH,
+        color: rgb(255, 60, 60),
+        radius: 6,
+        fixed: true,
     });
 });
 
