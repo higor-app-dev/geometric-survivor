@@ -138,8 +138,7 @@ onUpdate(() => {
     }
 
     player.pos = player.pos.add(dir.scale(game.speed * dt()));
-    player.pos.x = clamp(player.pos.x, 20, width() - 20);
-    player.pos.y = clamp(player.pos.y, 20, height() - 20);
+    setCamPos(player.pos);
 });
 
 // ─── Enemy Spawning ───
@@ -157,13 +156,10 @@ onUpdate(() => {
 });
 
 function spawnEnemy() {
-    const side = randi(4);
-    let x, y;
-    const m = 60;
-    if (side === 0) { x = rand(0, width()); y = -m; }
-    else if (side === 1) { x = width() + m; y = rand(0, height()); }
-    else if (side === 2) { x = rand(0, width()); y = height() + m; }
-    else { x = -m; y = rand(0, height()); }
+    const angle = rand(0, Math.PI * 2);
+    const dist = 500 + rand(0, 200);
+    const x = player.pos.x + Math.cos(angle) * dist;
+    const y = player.pos.y + Math.sin(angle) * dist;
 
     const size = 20 + rand(-3, 3);
 
@@ -182,6 +178,10 @@ function spawnEnemy() {
 // ─── Enemy Movement ───
 onUpdate("enemy", (e) => {
     if (game.paused || gameOver) return;
+    if (player.pos.dist(e.pos) > 1200) {
+        destroy(e);
+        return;
+    }
     const dir = player.pos.sub(e.pos).unit();
     const spd = game.enemySpeed + game.level * 5;
     e.pos = e.pos.add(dir.scale(spd * dt()));
