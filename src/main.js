@@ -213,6 +213,9 @@ function autoShoot() {
         if (d < minDist) { minDist = d; nearest = e; }
     }
 
+    const SHOOT_RANGE = 600;
+    if (minDist > SHOOT_RANGE) return;
+
     const dir = nearest.pos.sub(player.pos).unit();
 
     for (let i = 0; i < game.bullets; i++) {
