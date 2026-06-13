@@ -147,11 +147,14 @@ let spawnTimer = 0;
 onUpdate(() => {
     if (game.paused || gameOver) return;
     spawnTimer += dt();
-    const interval = Math.max(0.4, 1.2 - game.level * 0.05);
+    const elapsed = time();
+    const interval = Math.max(0.2, 1.3 - elapsed * 0.004 - game.level * 0.04);
     if (spawnTimer >= interval) {
         spawnTimer = 0;
-        spawnEnemy();
-        if (game.level >= 3) spawnEnemy();
+        const count = 1 + Math.floor(elapsed / 20) + (game.level >= 3 ? 1 : 0);
+        for (let i = 0; i < Math.min(count, 8); i++) {
+            spawnEnemy();
+        }
     }
 });
 
