@@ -157,7 +157,7 @@ onUpdate(() => {
 
 function spawnEnemy() {
     const angle = rand(0, Math.PI * 2);
-    const dist = 500 + rand(0, 200);
+    const dist = 800 + rand(0, 400);
     const x = player.pos.x + Math.cos(angle) * dist;
     const y = player.pos.y + Math.sin(angle) * dist;
 
